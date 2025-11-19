@@ -14,7 +14,12 @@ export const getJobs = (): Job[] => {
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return [];
   try {
-    return JSON.parse(data) as Job[];
+    const parsed = JSON.parse(data) as Job[];
+    // Migration: Ensure all jobs have a status property if coming from older version
+    return parsed.map(job => ({
+        ...job,
+        status: (job.status || 'pending') as 'pending' | 'paid'
+    }));
   } catch (e) {
     console.error("Failed to parse jobs from storage", e);
     return [];
@@ -26,6 +31,18 @@ export const deleteJob = (id: string): Job[] => {
   const updatedJobs = currentJobs.filter(job => job.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedJobs));
   return updatedJobs;
+};
+
+export const markClientJobsAsPaid = (clientName: string): Job[] => {
+    const currentJobs = getJobs();
+    const updatedJobs = currentJobs.map(job => {
+        if (job.clientName === clientName && job.status === 'pending') {
+            return { ...job, status: 'paid' as const };
+        }
+        return job;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedJobs));
+    return updatedJobs;
 };
 
 export const saveGoal = (goal: number) => {

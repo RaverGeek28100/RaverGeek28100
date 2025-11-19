@@ -54,6 +54,36 @@ export const playLevelUpSound = () => {
   });
 };
 
+export const playGoalReachedSound = () => {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    const now = audioCtx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50]; // C Major Fanfare
+    
+    notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'square'; // More retro/gamey sound
+        osc.frequency.value = freq;
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        // Timing logic for fanfare rhythm
+        const duration = i === notes.length - 1 ? 0.8 : 0.15; 
+        const startTime = now + (i * 0.15);
+        
+        gain.gain.setValueAtTime(0.05, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    });
+};
+
 export const playClickSound = () => {
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();

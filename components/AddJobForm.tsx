@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Briefcase, DollarSign, CalendarDays } from 'lucide-react';
+import { Plus, Briefcase, DollarSign, CalendarDays, Save } from 'lucide-react';
 import { PRESET_CLIENTS } from '../constants';
 import { Job, JobType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -44,6 +44,7 @@ const AddJobForm: React.FC<AddJobFormProps> = ({ onJobAdded }) => {
       amount: Number(amount),
       date,
       timestamp: Date.now(),
+      status: 'pending', // Default status
     };
 
     onJobAdded(newJob);
@@ -57,7 +58,7 @@ const AddJobForm: React.FC<AddJobFormProps> = ({ onJobAdded }) => {
         <span className="bg-blue-100 p-2 rounded-xl text-blue-500">
             <Plus className="w-6 h-6" />
         </span>
-        Registrar Trabajo
+        Registrar Pago
       </h2>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,9 +165,10 @@ const AddJobForm: React.FC<AddJobFormProps> = ({ onJobAdded }) => {
         <div className="md:col-span-2 mt-2">
           <button
             type="submit"
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg py-4 rounded-2xl border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all shadow-lg shadow-green-200 uppercase tracking-wide"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-lg py-4 rounded-2xl border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all shadow-lg shadow-blue-200 uppercase tracking-wide flex items-center justify-center gap-3"
           >
-            ¡Cobrar Dinero!
+            <Save className="w-6 h-6" />
+            Registrar Pago
           </button>
         </div>
 

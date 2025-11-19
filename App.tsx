@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter } from 'react-router-dom';
-import { LayoutDashboard, History, Star } from 'lucide-react';
-import { getJobs, saveJob, deleteJob, getGoal } from './services/storage';
+import { LayoutDashboard, History, Star, Users } from 'lucide-react';
+import { getJobs, saveJob, deleteJob, getGoal, markClientJobsAsPaid } from './services/storage';
 import { Job } from './types';
 import GoalTracker from './components/GoalTracker';
 import AddJobForm from './components/AddJobForm';
 import JobHistory from './components/JobHistory';
+import ClientStats from './components/ClientStats';
 import AICoach from './components/AICoach';
 import { playClickSound } from './services/sound';
 
 const App: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [goal, setGoal] = useState<number>(5000);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'clients'>('dashboard');
 
   useEffect(() => {
     setJobs(getJobs());
@@ -25,18 +26,25 @@ const App: React.FC = () => {
   };
 
   const handleDeleteJob = (id: string) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar este registro?")) {
-        const updated = deleteJob(id);
-        setJobs(updated);
-    }
+    // Removed confirm for instant delete
+    const updated = deleteJob(id);
+    setJobs(updated);
   };
 
-  const handleTabChange = (tab: 'dashboard' | 'history') => {
+  const handleMarkPaid = (clientName: string) => {
+      const updated = markClientJobsAsPaid(clientName);
+      setJobs(updated);
+  };
+
+  const handleTabChange = (tab: 'dashboard' | 'history' | 'clients') => {
       setActiveTab(tab);
       playClickSound();
   }
 
-  const totalEarnings = useMemo(() => jobs.reduce((sum, job) => sum + job.amount, 0), [jobs]);
+  // Split earnings into Liquid (Paid) and Pending (Debt)
+  const paidEarnings = useMemo(() => jobs.filter(j => j.status === 'paid').reduce((sum, job) => sum + job.amount, 0), [jobs]);
+  const pendingEarnings = useMemo(() => jobs.filter(j => j.status === 'pending').reduce((sum, job) => sum + job.amount, 0), [jobs]);
+  const totalEarnings = paidEarnings + pendingEarnings;
 
   return (
     <HashRouter>
@@ -55,31 +63,47 @@ const App: React.FC = () => {
 
             <main className="max-w-xl mx-auto px-4 py-6">
                 
-                {/* Goal Tracker (Replaces Level Progress as main visual) */}
-                <GoalTracker totalEarnings={totalEarnings} initialGoal={goal} />
+                {/* Goal Tracker: Now handles the visual separation of Paid vs Pending */}
+                <GoalTracker 
+                    totalEarnings={totalEarnings} 
+                    paidEarnings={paidEarnings}
+                    pendingEarnings={pendingEarnings}
+                    initialGoal={goal} 
+                />
                 
                 {/* Tab Navigation */}
-                <div className="flex gap-4 mb-6 bg-slate-200 p-1.5 rounded-2xl">
+                <div className="flex gap-2 mb-6 bg-slate-200 p-1.5 rounded-2xl overflow-x-auto">
                     <button
                         onClick={() => handleTabChange('dashboard')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-extrabold rounded-xl transition-all ${
+                        className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-3 text-xs md:text-sm font-extrabold rounded-xl transition-all whitespace-nowrap ${
                             activeTab === 'dashboard' 
                             ? 'bg-white text-blue-600 shadow-sm' 
                             : 'text-slate-500 hover:text-slate-700'
                         }`}
                     >
-                        <LayoutDashboard className="w-5 h-5" />
+                        <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5" />
                         Misiones
                     </button>
                     <button
+                        onClick={() => handleTabChange('clients')}
+                        className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-3 text-xs md:text-sm font-extrabold rounded-xl transition-all whitespace-nowrap ${
+                            activeTab === 'clients' 
+                            ? 'bg-white text-indigo-600 shadow-sm' 
+                            : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <Users className="w-4 h-4 md:w-5 md:h-5" />
+                        Clientes
+                    </button>
+                    <button
                         onClick={() => handleTabChange('history')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-extrabold rounded-xl transition-all ${
+                        className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-3 text-xs md:text-sm font-extrabold rounded-xl transition-all whitespace-nowrap ${
                             activeTab === 'history' 
                             ? 'bg-white text-blue-600 shadow-sm' 
                             : 'text-slate-500 hover:text-slate-700'
                         }`}
                     >
-                        <History className="w-5 h-5" />
+                        <History className="w-4 h-4 md:w-5 md:h-5" />
                         Historial
                     </button>
                 </div>
@@ -90,6 +114,10 @@ const App: React.FC = () => {
                             <AddJobForm onJobAdded={handleAddJob} />
                             <AICoach totalEarnings={totalEarnings} lastJob={jobs[0]} />
                         </>
+                    )}
+
+                    {activeTab === 'clients' && (
+                        <ClientStats jobs={jobs} onMarkPaid={handleMarkPaid} />
                     )}
 
                     {activeTab === 'history' && (

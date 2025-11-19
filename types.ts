@@ -12,6 +12,7 @@ export interface Job {
   amount: number;
   date: string; // ISO string
   timestamp: number;
+  status: 'pending' | 'paid';
 }
 
 export interface ClientPreset {
