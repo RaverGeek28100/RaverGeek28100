@@ -16,12 +16,12 @@ export const PRESET_CLIENTS: ClientPreset[] = [
 ];
 
 export const LEVELS: LevelData[] = [
-  { level: 1, rankTitle: "Novice Cutter", minXp: 0, maxXp: 2000 },
-  { level: 2, rankTitle: "Timeline Traveller", minXp: 2000, maxXp: 5000 },
-  { level: 3, rankTitle: "Keyframe Warrior", minXp: 5000, maxXp: 10000 },
-  { level: 4, rankTitle: "Render Master", minXp: 10000, maxXp: 20000 },
-  { level: 5, rankTitle: "VFX Wizard", minXp: 20000, maxXp: 40000 },
-  { level: 6, rankTitle: "Director of Chaos", minXp: 40000, maxXp: 75000 },
-  { level: 7, rankTitle: "Legendary Editor", minXp: 75000, maxXp: 150000 },
-  { level: 8, rankTitle: "God of Post-Production", minXp: 150000, maxXp: 9999999 },
+  { level: 1, rankTitle: "Novato de Premiere", minXp: 0, maxXp: 1000 },
+  { level: 2, rankTitle: "Cortador Rápido", minXp: 1000, maxXp: 2500 },
+  { level: 3, rankTitle: "Maestro del Keyframe", minXp: 2500, maxXp: 5000 },
+  { level: 4, rankTitle: "Renderizador", minXp: 5000, maxXp: 10000 },
+  { level: 5, rankTitle: "Mago de VFX", minXp: 10000, maxXp: 20000 },
+  { level: 6, rankTitle: "Director de Caos", minXp: 20000, maxXp: 50000 },
+  { level: 7, rankTitle: "Editor Legendario", minXp: 50000, maxXp: 100000 },
+  { level: 8, rankTitle: "Dios del After Effects", minXp: 100000, maxXp: 9999999 },
 ];

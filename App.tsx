@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter } from 'react-router-dom';
 import { LayoutDashboard, History, Star, Users } from 'lucide-react';
-import { getJobs, saveJob, deleteJob, getGoal, markClientJobsAsPaid } from './services/storage';
+import { getJobs, saveJob, deleteJob, getGoal, saveGoal, markClientJobsAsPaid } from './services/storage';
 import { Job } from './types';
 import GoalTracker from './components/GoalTracker';
 import AddJobForm from './components/AddJobForm';
@@ -36,6 +36,12 @@ const App: React.FC = () => {
       setJobs(updated);
   };
 
+  const handleUpdateGoal = (newGoal: number) => {
+      saveGoal(newGoal);
+      setGoal(newGoal);
+      playClickSound();
+  };
+
   const handleTabChange = (tab: 'dashboard' | 'history' | 'clients') => {
       setActiveTab(tab);
       playClickSound();
@@ -63,12 +69,13 @@ const App: React.FC = () => {
 
             <main className="max-w-xl mx-auto px-4 py-6">
                 
-                {/* Goal Tracker: Now handles the visual separation of Paid vs Pending */}
+                {/* Goal Tracker: Bar tracks PENDING (Debt). Piggy Bank tracks PAID. */}
                 <GoalTracker 
                     totalEarnings={totalEarnings} 
                     paidEarnings={paidEarnings}
                     pendingEarnings={pendingEarnings}
-                    initialGoal={goal} 
+                    currentGoal={goal}
+                    onUpdateGoal={handleUpdateGoal}
                 />
                 
                 {/* Tab Navigation */}
