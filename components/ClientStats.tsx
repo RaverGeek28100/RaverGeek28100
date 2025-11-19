@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Job } from '../types';
-import { Users, Copy, Wallet, PiggyBank, CheckCircle2 } from 'lucide-react';
-import { playClickSound, playSuccessSound } from '../services/sound';
+import { Users, Copy, Wallet, PartyPopper, CheckCircle2 } from 'lucide-react';
+import { playClickSound } from '../services/sound';
 
 interface ClientStatsProps {
   jobs: Job[];
@@ -58,7 +59,8 @@ const ClientStats: React.FC<ClientStatsProps> = ({ jobs, onMarkPaid }) => {
   };
 
   const handleMarkAsPaid = (clientName: string) => {
-      playSuccessSound();
+      // Using Click Sound for feedback. The GoalTracker will handle the "Deposit" sound/animation automatically.
+      playClickSound();
       onMarkPaid(clientName);
   };
 
@@ -116,11 +118,11 @@ const ClientStats: React.FC<ClientStatsProps> = ({ jobs, onMarkPaid }) => {
                     </button>
                 </div>
             ) : (
-                <div className="bg-pink-50 border-2 border-pink-100 rounded-xl p-4 flex items-center justify-center gap-3 text-pink-600 animate-in zoom-in-95 duration-300">
-                    <PiggyBank className="w-8 h-8 animate-bounce" />
+                <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 flex items-center justify-center gap-3 text-indigo-600 animate-pulse shadow-sm">
+                    <PartyPopper className="w-8 h-8 animate-bounce" />
                     <div>
-                        <p className="font-black text-lg leading-none">¡Dinero en Caja!</p>
-                        <p className="text-xs font-bold opacity-70">Todo cobrado a este cliente</p>
+                        <p className="font-black text-lg leading-none">¡Todo al Día!</p>
+                        <p className="text-xs font-bold opacity-70">Sin pagos pendientes</p>
                     </div>
                 </div>
             )}

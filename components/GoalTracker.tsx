@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { PiggyBank, Clock, CheckCircle2, Edit2, Check, X, Briefcase } from 'lucide-react';
-import { playGoalReachedSound, playClickSound } from '../services/sound';
+import { PiggyBank, Clock, CheckCircle2, Edit2, Check, X, Briefcase, Vault } from 'lucide-react';
+import { playGoalReachedSound, playClickSound, playDepositSound, playCashOutSound } from '../services/sound';
 
 interface GoalTrackerProps {
   totalEarnings: number; // Used for total score
@@ -8,16 +9,19 @@ interface GoalTrackerProps {
   pendingEarnings: number; // Used for Progress Bar (Debt)
   currentGoal: number;
   onUpdateGoal: (newGoal: number) => void;
+  onWithdraw: () => void;
 }
 
 const GoalTracker: React.FC<GoalTrackerProps> = ({ 
     paidEarnings, 
     pendingEarnings, 
     currentGoal, 
-    onUpdateGoal 
+    onUpdateGoal,
+    onWithdraw
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempGoal, setTempGoal] = useState(currentGoal.toString());
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
   
   // Animation states
   const [newlyPaidAmount, setNewlyPaidAmount] = useState<number | null>(null);
@@ -40,10 +44,14 @@ const GoalTracker: React.FC<GoalTrackerProps> = ({
 
   // Effect to trigger "Paid" Animation (Piggy Bank Celebration)
   useEffect(() => {
+      // Only trigger if paid earnings increased and it wasn't a reset to 0 (Withdrawal)
       if (paidEarnings > prevPaidRef.current) {
           const diff = paidEarnings - prevPaidRef.current;
           setNewlyPaidAmount(diff);
           
+          // Play special deposit sound
+          playDepositSound();
+
           // Reset animation after 2 seconds
           const timer = setTimeout(() => {
               setNewlyPaidAmount(null);
@@ -62,41 +70,91 @@ const GoalTracker: React.FC<GoalTrackerProps> = ({
     }
   };
 
+  const handleWithdrawClick = () => {
+      playClickSound();
+      setShowWithdrawConfirm(true);
+  }
+
+  const confirmWithdraw = () => {
+      playCashOutSound();
+      setShowWithdrawConfirm(false);
+      onWithdraw();
+  }
+
   return (
     <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-sm mb-6 relative overflow-visible z-10">
       
       {/* TOP SECTION: JUST THE WALLET (Cleaned up) */}
-      <div className="flex justify-end items-center mb-6 relative">
-         {/* Floating Animation for New Money */}
-         {newlyPaidAmount && (
-             <div className="absolute -top-8 right-0 animate-[bounce_1s_infinite] z-50 pointer-events-none">
-                 <span className="bg-green-500 text-white font-black text-lg px-3 py-1 rounded-full shadow-lg border-2 border-green-400 flex items-center gap-1">
-                    +${newlyPaidAmount.toLocaleString()}
-                 </span>
-             </div>
-         )}
+      <div className="flex justify-between items-start mb-6 relative">
+         
+         {/* Left Side: Title or Empty */}
+         <div></div>
 
-         <div className={`
-            bg-pink-50 px-4 py-2 rounded-2xl border flex items-center gap-3 transition-all duration-500
-            ${newlyPaidAmount ? 'border-pink-400 scale-110 shadow-lg shadow-pink-200 ring-4 ring-pink-100' : 'border-pink-100'}
-         `}>
-             <div className={`
-                bg-pink-100 p-2 rounded-full transition-transform duration-500
-                ${newlyPaidAmount ? 'rotate-12 scale-110 bg-pink-200' : ''}
-             `}>
-                <PiggyBank className={`w-5 h-5 text-pink-500 ${newlyPaidAmount ? 'animate-bounce' : ''}`} />
-             </div>
-             <div className="text-right">
-                 <span className="block text-[10px] font-extrabold text-pink-400 uppercase tracking-widest">
-                     Dinero Cobrado (Score)
-                 </span>
-                 <span className={`
-                    block text-2xl font-black text-slate-800 tracking-tight leading-none transition-colors duration-300
-                    ${newlyPaidAmount ? 'text-pink-600' : ''}
-                 `}>
-                    ${paidEarnings.toLocaleString()}
-                 </span>
-             </div>
+         {/* Right Side: Wallet & Withdraw */}
+         <div className="flex flex-col items-end gap-2">
+             {/* Floating Animation for New Money */}
+            {newlyPaidAmount && (
+                <div className="absolute -top-8 right-0 animate-[bounce_1s_infinite] z-50 pointer-events-none">
+                    <span className="bg-green-500 text-white font-black text-lg px-3 py-1 rounded-full shadow-lg border-2 border-green-400 flex items-center gap-1">
+                        +${newlyPaidAmount.toLocaleString()}
+                    </span>
+                </div>
+            )}
+
+            <div className={`
+                bg-pink-50 px-4 py-2 rounded-2xl border flex items-center gap-3 transition-all duration-500
+                ${newlyPaidAmount ? 'border-pink-400 scale-110 shadow-lg shadow-pink-200 ring-4 ring-pink-100' : 'border-pink-100'}
+            `}>
+                <div className={`
+                    bg-pink-100 p-2 rounded-full transition-transform duration-500
+                    ${newlyPaidAmount ? 'rotate-12 scale-110 bg-pink-200' : ''}
+                `}>
+                    <PiggyBank className={`w-5 h-5 text-pink-500 ${newlyPaidAmount ? 'animate-bounce' : ''}`} />
+                </div>
+                <div className="text-right">
+                    <span className="block text-[10px] font-extrabold text-pink-400 uppercase tracking-widest">
+                        Dinero Cobrado (Score)
+                    </span>
+                    <span className={`
+                        block text-2xl font-black text-slate-800 tracking-tight leading-none transition-colors duration-300
+                        ${newlyPaidAmount ? 'text-pink-600' : ''}
+                    `}>
+                        ${paidEarnings.toLocaleString()}
+                    </span>
+                </div>
+            </div>
+
+            {/* Withdraw Button - Only show if there is money */}
+            {paidEarnings > 0 && (
+                <div className="animate-in fade-in slide-in-from-top-2">
+                    {showWithdrawConfirm ? (
+                        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                            <button 
+                                onClick={confirmWithdraw}
+                                className="bg-green-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center gap-1"
+                            >
+                                <Check className="w-3 h-3" /> Confirmar
+                            </button>
+                            <button 
+                                onClick={() => setShowWithdrawConfirm(false)}
+                                className="bg-slate-300 text-slate-500 px-2 py-1 rounded-lg text-xs font-bold hover:bg-slate-400"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleWithdrawClick}
+                            className="group flex items-center gap-2 px-3 py-1.5 bg-white border-2 border-slate-200 rounded-xl hover:border-emerald-300 hover:bg-emerald-50 transition-all"
+                        >
+                            <Vault className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                            <span className="text-xs font-extrabold text-slate-400 group-hover:text-emerald-600 uppercase tracking-wide">
+                                Retirar Todo
+                            </span>
+                        </button>
+                    )}
+                </div>
+            )}
          </div>
       </div>
 

@@ -1,3 +1,4 @@
+
 // Simple synthesizer for game sounds
 const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
 
@@ -83,6 +84,102 @@ export const playGoalReachedSound = () => {
         osc.stop(startTime + duration);
     });
 };
+
+export const playDepositSound = () => {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    const now = audioCtx.currentTime;
+    
+    // 1. The "Ka" part (Mechanical Click/Ding)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(1200, now);
+    gain1.gain.setValueAtTime(0.1, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.15);
+
+    // 2. The "Ching" part (High Bell)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(2200, now + 0.1);
+    gain2.gain.setValueAtTime(0.08, now + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.1);
+    osc2.stop(now + 0.8);
+
+    // 3. Sparkles (Fast Arpeggio)
+    [1800, 2400, 3000].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        
+        const start = now + 0.2 + (i * 0.06);
+        gain.gain.setValueAtTime(0.03, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + 0.2);
+    });
+};
+
+export const playCashOutSound = () => {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    const now = audioCtx.currentTime;
+
+    // 1. Low Thud (Bag dropping)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'square';
+    osc1.frequency.setValueAtTime(100, now);
+    osc1.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+    gain1.gain.setValueAtTime(0.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.3);
+
+    // 2. Coins Rattle
+    [800, 1200, 1500, 900, 1300].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        
+        const start = now + 0.1 + (Math.random() * 0.3);
+        const dur = 0.1;
+
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + dur);
+    });
+
+    // 3. Final Cha-Ching
+    setTimeout(() => {
+       playDepositSound();
+    }, 400);
+};
+
 
 export const playClickSound = () => {
     if (audioCtx.state === 'suspended') {

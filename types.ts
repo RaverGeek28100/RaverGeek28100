@@ -13,6 +13,7 @@ export interface Job {
   date: string; // ISO string
   timestamp: number;
   status: 'pending' | 'paid';
+  withdrawn?: boolean; // New flag to check if this money has been "cashed out" from the piggy bank
 }
 
 export interface ClientPreset {
@@ -27,4 +28,12 @@ export interface LevelData {
   rankTitle: string;
   minXp: number;
   maxXp: number;
+}
+
+export interface Withdrawal {
+  id: string;
+  amount: number;
+  date: string;
+  month: string;
+  timestamp: number;
 }
