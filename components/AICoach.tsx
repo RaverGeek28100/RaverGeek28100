@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, MessageSquare } from 'lucide-react';
-import { Job, LevelData } from '../types';
+import { MessageCircleHeart, Zap } from 'lucide-react';
+import { Job } from '../types';
 import { getMotivationalQuote } from '../services/geminiService';
 import { LEVELS } from '../constants';
+import { playClickSound } from '../services/sound';
 
 interface AICoachProps {
   totalEarnings: number;
@@ -14,6 +15,7 @@ const AICoach: React.FC<AICoachProps> = ({ totalEarnings, lastJob }) => {
   const [loading, setLoading] = useState(false);
 
   const handleGetMotivation = async () => {
+    playClickSound();
     setLoading(true);
     const level = LEVELS.find(l => totalEarnings >= l.minXp && totalEarnings < l.maxXp) || LEVELS[LEVELS.length - 1];
     const quote = await getMotivationalQuote(totalEarnings, level, lastJob);
@@ -22,53 +24,41 @@ const AICoach: React.FC<AICoachProps> = ({ totalEarnings, lastJob }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-1 border border-cyan-900/50 shadow-lg mt-6">
-        <div className="bg-slate-900/80 rounded-lg p-4 backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Sparkles className="w-5 h-5 text-cyan-400" />
+    <div className="mb-8">
+        {message ? (
+             <div className="bg-purple-500 text-white rounded-3xl p-6 relative border-b-4 border-purple-700 animate-in fade-in zoom-in-95 duration-300">
+                <div className="absolute -top-3 -left-2 bg-white p-2 rounded-full border-4 border-purple-100 shadow-sm">
+                     <MessageCircleHeart className="w-6 h-6 text-purple-500" />
                 </div>
-                <h3 className="font-hud text-cyan-100 text-lg">AI Coach System</h3>
-            </div>
-
-            {message ? (
-                <div className="bg-cyan-950/30 border border-cyan-900/50 p-4 rounded-lg animate-in fade-in duration-500">
-                    <p className="text-cyan-200 italic font-mono text-sm leading-relaxed">
-                        "{message}"
-                    </p>
-                    <button 
-                        onClick={() => setMessage(null)}
-                        className="text-xs text-slate-500 mt-2 hover:text-cyan-400 transition-colors"
-                    >
-                        Dismiss
-                    </button>
+                <p className="text-lg font-bold leading-relaxed ml-4">
+                    "{message}"
+                </p>
+                <button 
+                    onClick={() => setMessage(null)}
+                    className="absolute top-4 right-4 text-purple-200 hover:text-white font-bold text-xs uppercase tracking-wide"
+                >
+                    Cerrar
+                </button>
+             </div>
+        ) : (
+            <button
+                onClick={handleGetMotivation}
+                disabled={loading}
+                className={`
+                    w-full group relative overflow-hidden rounded-2xl bg-white border-2 border-slate-200 p-4 text-slate-600 hover:border-purple-400 hover:text-purple-500 transition-all
+                    ${loading ? 'opacity-75' : 'hover:shadow-md hover:-translate-y-1'}
+                `}
+            >
+                <div className="flex items-center justify-center gap-3">
+                    <div className="bg-purple-100 p-2 rounded-xl text-purple-500">
+                        <Zap className={`w-6 h-6 ${loading ? 'animate-pulse' : ''}`} />
+                    </div>
+                    <span className="font-extrabold text-lg">
+                        {loading ? "Conectando con la IA..." : "Pedir Consejo Motivacional"}
+                    </span>
                 </div>
-            ) : (
-                <div className="text-center py-2">
-                    <button
-                        onClick={handleGetMotivation}
-                        disabled={loading}
-                        className={`
-                            w-full group relative overflow-hidden rounded-lg bg-cyan-700 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-cyan-600
-                            ${loading ? 'opacity-75 cursor-wait' : ''}
-                        `}
-                    >
-                        <span className="relative z-10 flex items-center justify-center gap-2">
-                            {loading ? (
-                                <>Processing Data...</>
-                            ) : (
-                                <>
-                                    <MessageSquare className="w-4 h-4" />
-                                    Analyze Performance & Motivate
-                                </>
-                            )}
-                        </span>
-                        {/* Button Glow Effect */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
-                    </button>
-                </div>
-            )}
-        </div>
+            </button>
+        )}
     </div>
   );
 };
